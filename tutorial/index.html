@@ -1,12 +1,9 @@
-<!-- <html> -->
-<head>
-<title>Demonstrating Akka Streams</title>
-</head>
+<html>
+  <head>
+    <title>Demonstrating Akka Streams</title>
+  </head>
 <body>
-
-<div>
 <h2>Introduction</h2>
-
 <p>
 This tutorial contains a few samples that demonstrates Akka Streams.
 </p>
@@ -19,9 +16,8 @@ Akka Streams is interoperable with other Reactive Streams implementations.
 </p>
 
 <p>
-Akka Streams is currently under development and these samples use a preview release, i.e.
-changes can be expected. Please try it out and send feedback to the
-<a href="http://groups.google.com/group/akka-user" target="_blank">Akka mailing list</a>.
+Akka Streams is discussed in the
+<a href="http://groups.google.com/group/akka-user" target="_blank">Akka Google Group</a>.
 </p>
 
 <p>
@@ -51,8 +47,8 @@ Each DSL element produces a new Flow that can be further transformed, building
 up a description of the complete transformation pipeline. In order to execute
 this pipeline the <code>Flow</code> must be runnable (have both <code>Source</code>
 and <code>Sink</code> endpoints, and is materialized by calling one of the execution
-methods which include <code>.run</code>, <code>.runWith</code>, <code>.runForeach</code>
-and <code>.runFold</code>.
+methods which include <code>run</code>, <code>runWith</code>, <code>runForeach</code>
+and <code>runFold</code>.
 </p>
 
 <p>
@@ -64,7 +60,7 @@ can (and usually is) an implicit value to streamline the calls.
 <p>
 It should be noted that the streams modeled by this library are “hot”,
 meaning that they asynchronously flow through a series of processors without
-detailed control by the user. In particular it is not predictable how many
+detailed control by the user. In particular, it is not predictable how many
 elements a given transformation step might buffer before handing elements
 downstream, which means that transformation functions may be invoked more
 often than for corresponding transformations on strict collections like
@@ -82,8 +78,6 @@ by those methods that materialize the Flow into a series of
 Synchronous compaction of steps is possible (but not yet implemented).
 </p>
 
-</div>
-<div>
 <h2>Basic transformation</h2>
 
 <p>
@@ -96,21 +90,22 @@ Open <a href="#code/src/main/scala/sample/stream/BasicTransformation.scala" clas
 
 <p>
 Here we use an <code>Iterator</code> over the Array produced by splitting the text
-using the spaces, as input producer;
+using the spaces, as an input producer;
 note that the iterator is an <code>Iterator[String]</code> and this produces
 a <code>Source[String, Unit]</code>. The first type parameter is the type of the
 elements that this source is producing. Second type parameter is the
 type of the materialized value of this source. A value of this type will be returned
 after materialization when calling any of <code>run*</code> methods. In this case materialized
-value has a type of <code>Unit</code> which means no value will be materialized.
-
-<p>The flow written to use this source
-must match the the first type parameter, so we could not treat the source as a source of <code>Int</code>
-for example.
+ value has a type of <code>Unit</code> which means no value will be materialized.
 </p>
 
 <p>
-In this sample we convert each read line to upper case and printing it
+The flow written to use this source must match the the first type parameter,
+so we could not treat the source as a source of <code>Int</code>, for example.
+</p>
+
+<p>
+In this sample we convert each input line to upper case and print it
 to the console. This is done in the lines <code>map(_.toUpperCase)</code> and
 <code>runForeach(println)</code>.
 </p>
@@ -134,7 +129,7 @@ by the <code>runForeach</code> call.
 
 <p>Unlike a <code>foreach</code> on a collection (which returns <code>Unit</code>),
 the <code>runForeach</code> on a Flow returns a <code>Future[Unit]</code> instead. Because
-we get a <code>Future</code> back, we can use it to shutdown the actor system once the
+we get a <code>Future</code> back, we can use it to shut down the ActorSystem once the
 flow is completed. This is accomplished by the final line in the flow:
 <code>onComplete(_ => system.shutdown())</code>
 
@@ -148,52 +143,47 @@ and click the 'Run' button.
 Try to add additional steps in the flow, for example skip short lines:
 </p>
 
-<pre><code>
-filter(line => line.length > 3).
-</code></pre>
+<pre>filter(line => line.length > 3)</pre>
 
 <p>The API is intended to be familiar to anyone used to the collections API in Scala.</p>
 
 <p>
 All stream manipulation operations can be found in the
-<a href="http://doc.akka.io/api/akka-stream-and-http-experimental/2.0.1/#akka.stream.scaladsl.package" target="_blank">API documentation</a>.
+<a href="http://doc.akka.io/api/akka/current/akka/stream/scaladsl/index.html" target="_blank">API documentation</a>.
 </p>
 
-</div>
-<div>
 <h2>Backpressure</h2>
 
 <p>
-The mandatory non-blocking backpressure is a key feature of
+Mandatory non-blocking backpressure is a key feature of
 <a href="http://www.reactive-streams.org/" target="_blank">Reactive Streams</a>.
 </p>
 
 <p>
-Open <a href="#code/src/main/scala/sample/stream/WritePrimes.scala" class="shortcut">WritePrimes.scala</a>
+Open <a href="#code/src/main/scala/sample/stream/WritePrimes.scala" class="shortcut">WritePrimes.scala</a>.
 </p>
 
 <p>
-In this sample we use a fast producer and several consumers, with potentially different throughput capacity.
-To avoid out of memory problems it is important that the producer does not generate elements faster than
-what can be consumed. Also the speed of the slowest consumer must be taken into account to avoid
-unbounded buffering in intermediate steps.
+In this sample we use a fast producer and several consumers, each with potentially different throughput capacity.
+To avoid out-of-memory problems it is important that the producer does not generate elements faster than they can be
+consumed. The speed of the slowest consumer must also be taken into account to avoid unbounded buffering in intermediate steps.
 </p>
 
 <p>
-Here we use a random number generator as input. The input producer is a block of code which is
-evaluated repeatedly. It can generate elements very fast if needed.
+Here we use a random number generator as input. The input producer is a block of code which is evaluated repeatedly.
+It can generate elements very quickly if needed.
 </p>
 
 <p>
 We filter the numbers through two prime number checks and end up with a stream of
-prime numbers, which neighbor +2 number is also a prime number. These two flow filter steps
-can potentially be pipelined, i.e. executed in parallel.
+prime numbers whose neighboring number (greater by 2) is also a prime number. These two flow filter steps
+could potentially be pipelined (executed in parallel).
 </p>
 
 <p>
-Then we connect that prime number producer to two consumers. One writing to a file, and another
-printing to the console. To simulate that the file writer is slow we have added an additional
-sleep in a map stage right before the <code>SynchronousFileSink</code>.
+Then we connect the prime number producer to two consumers. One consumer writes to a file, and the other consumer
+prints to the console. To simulate a slow file writer, an additional
+sleep was added in the map stage right before the <code>SynchronousFileSink</code>.
 </p>
 
 <p>
@@ -203,29 +193,24 @@ and click the 'Run' button.
 </p>
 
 <p>
-Note that speed of the output in the console is limited by the slow file writer, i.e.
+Note that speed of the output in the console is limited by the slow file writer, to about
 one element per second. When running the app you will notice that elements are not requested
-precisely 1 by 1, but in larger batches.  This is because the File sink tries to optimise its
+one at at time. Instead, they are fetched in larger batches.  This is because the File sink tries to optimise its
 request behaviour in order to write as many elements at once as possible to the target file.
-You can configure this behaviour by setting
-<code>.withAttributes(Attributes.inputBuffer(initial, max))</code>.
+This behaviour can be configured by invoking <code>withAttributes(Attributes.inputBuffer(initial, max))</code>.
 </p>
 
 <p>
-Open <a href="#code/target/primes.txt" class="shortcut">primes.txt</a> to see
-the file output.
+Open <a href="code/target/primes.txt" class="shortcut">primes.txt</a> to see the file output.
 </p>
 
-</div>
-<div>
-<h2>Stream of streams</h2>
-
+<h2>Stream of Streams</h2>
 <p>
-Let us take a look at an example of more advanced stream manipulation.
+This is an example of more advanced stream manipulation.
 </p>
 
 <p>
-Open <a href="#code/src/main/scala/sample/stream/GroupLogFile.scala" class="shortcut">GroupLogFile.scala</a>
+Open <a href="code/src/main/scala/sample/stream/GroupLogFile.scala" class="shortcut">GroupLogFile.scala</a>
 </p>
 
 <p>
@@ -254,10 +239,7 @@ and look at the resulting output log files in the
 <a href="#code/target" class="shortcut">target</a> directory.
 </p>
 
-</div>
-<div>
 <h2>TCP Stream</h2>
-
 <p>
 Akka Streams also provides a stream based API on top of
 <a href="http://doc.akka.io/docs/akka/2.3.11/scala/io.html" target="_blank">Akka I/O</a>.
@@ -284,18 +266,14 @@ when server starts listening on a given address.
 <p>
 In this sample the server sends back the same bytes as it receives.
 </p>
-<pre>
-<code>conn handleWith Flow[ByteString]</code>
-</pre>
-</p>
+<pre>conn handleWith Flow[ByteString]</pre>
 
 <p>
-You can add transformation of the bytes using a <code>Flow</code>. For example convert characters to
-upper case.
+You can transformation the bytes using a <code>Flow</code>.
+For example, characters could be converted to upper case.
 </p>
-<pre>
-<code>val toUpper = Flow[ByteString].map(b => ByteString.fromString(b.utf8String.toUpperCase()))
- conn handleWith toUpper</code>
+<pre>val toUpper = Flow[ByteString].map(b => ByteString.fromString(b.utf8String.toUpperCase()))
+ conn handleWith toUpper
 </pre>
 
 <p>
@@ -321,42 +299,29 @@ and click the 'Run' button.
 </p>
 
 <p>
-That runs the client and server in the same JVM process. It can be more
-interesting to run them in separate processes. Run the following commands in separate
-terminal windows.
+That runs the client and server in the same JVM process.
+It can be more interesting to run them in separate processes.
+To do that, run the following commands in separate terminal windows.
 </p>
 
-<pre>
-<code>&lt;path to activator dir&gt;/activator "run-main sample.stream.TcpEcho server 0.0.0.0 6001"</code>
-</pre>
+<pre>&lt;path to activator dir&gt;/activator "run-main sample.stream.TcpEcho server 0.0.0.0 6001"</pre>
 
-<pre>
-<code>&lt;path to activator dir&gt;/activator "run-main sample.stream.TcpEcho client 127.0.0.1 6001"</code>
-</pre>
+<pre>&lt;path to activator dir&gt;/activator "run-main sample.stream.TcpEcho client 127.0.0.1 6001"</pre>
 
 <p>
 You can also interact with the server with telnet:
 </p>
 
-<pre>
-<code>telnet 127.0.0.1 6001</code>
-</pre>
+<pre>telnet 127.0.0.1 6001</pre>
 
 <p>
-Type a few characters in the telnet session and press enter to see them echoed back to the terminal.
+Type a few characters in the telnet session and press Enter to see them echoed back to the terminal.
 </p>
 
-</div>
-<div>
 <h2>Links</h2>
-
 <ul>
-<li><a href="http://doc.akka.io/api/akka-stream-and-http-experimental/2.0.1/#akka.stream.scaladsl.package" target="_blank">Akka Streams 2.0.1 API documentation</a></li>
-<li><a href="http://www.reactive-streams.org/" target="_blank">Reactive Streams</a></li>
+  <li><a href="http://doc.akka.io/api/akka/current/akka/stream/scaladsl/index.html" target="_blank">Current Akka Streams API documentation</a></li>
+  <li><a href="http://www.reactive-streams.org/" target="_blank">Reactive Streams</a></li>
 </ul>
-
-</div>
-
-
 </body>
 </html>
