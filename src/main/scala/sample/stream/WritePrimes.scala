@@ -30,7 +30,7 @@ object WritePrimes {
     val slowSink = Flow[Int] // act as if processing is really slow
       .map { i =>
         Thread.sleep(1000)
-        ByteString(i.toString + "\n")
+        ByteString(s"$i\n")
       }
       .toMat(fileSink)((_, bytesWritten) => bytesWritten)
 
