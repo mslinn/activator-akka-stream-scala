@@ -53,7 +53,7 @@ object TcpEcho {
           println("Server started, listening on: " + b.localAddress)
 
         case Failure(e) =>
-          println(s"Server could not bind to $address:$port: ${e.getMessage}")
+          println(s"Server could not bind to $address:$port: ${ e.getMessage }")
           system.terminate()
       }
   }
